@@ -45,7 +45,9 @@ class StudentProfile(models.Model):
     )
     department=models.ForeignKey(
         Department,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     enrollment_no=models.CharField(
         max_length=50,
