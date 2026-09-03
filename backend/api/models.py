@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import uuid ##universally unique indentifier
 
 class College(models.Model):
     name=models.CharField(max_length=200)
@@ -73,3 +74,60 @@ class TeacherProfile(models.Model):
     )
     def __str__(self):
         return self.user.username
+
+class AttendanceSession(models.Model):
+    teacher=models.ForeignKey(
+        TeacherProfile,
+        on_delete=models.CASCADE
+    )
+    department=models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE
+    )
+    subject_name=models.CharField(
+        max_length=200,
+    )
+    session_token=models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+    )
+    started_at=models.DateTimeField(
+        auto_now_add=True,
+    )
+    expires_at=models.DateTimeField()
+
+
+class Attendance(models.Model):
+    
+    session=models.ForeignKey(
+        AttendanceSession,
+        on_delete=models.CASCADE,
+    )
+    student=models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+    )
+    marked_at=models.DateTimeField(
+        auto_now_add=True,
+    )
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "student"],
+                name="unique_student_session_attendance"
+            )
+        ]#one student 1 attendance
+    
+    def __str__(self):
+        return self.student.user.username
+    
+class Beacon(models.Model):
+    college=models.ForeignKey(
+        College,
+        on_delete=models.CASCADE
+    )
+    name=models.CharField(max_length=100)
+    uuid=models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
