@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 import uuid ##universally unique indentifier
 
 class College(models.Model):
@@ -28,13 +29,7 @@ class User(AbstractUser):
         ("STUDENT","Student"),
     )
     role=models.CharField(max_length=20,choices=ROLE_CHOICES)
-    college=models.ForeignKey(
-        College,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
-    
+
     def __str__(self):
         return self.username
     
@@ -43,6 +38,12 @@ class StudentProfile(models.Model):
     user=models.OneToOneField(
         User,
         on_delete=models.CASCADE
+    )
+    college=models.ForeignKey(
+        College,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     department=models.ForeignKey(
         Department,
@@ -56,13 +57,30 @@ class StudentProfile(models.Model):
     )
     division=models.CharField(max_length=20)
     
+    def clean(self):
+        if TeacherProfile.objects.filter(user=self.user).exists():
+            raise ValidationError(
+                "This user is already registered as a teacher."
+            )
+    
     def __str__(self):
         return self.user.username
     
 class TeacherProfile(models.Model):
+    STATUS_CHOICES = (
+        ("PENDING", "Pending"),
+        ("APPROVED", "Approved"),
+        ("REJECTED", "Rejected"),
+        )
     user=models.OneToOneField(
         User,
         on_delete=models.CASCADE
+    )
+    college=models.ForeignKey(
+        College,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     department=models.ForeignKey(
         Department,
@@ -72,6 +90,13 @@ class TeacherProfile(models.Model):
         max_length=20,
         unique=True
     )
+    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='Pending')
+    
+    def clean(self):
+        if StudentProfile.objects.filter(user=self.user).exists():
+            raise ValidationError(
+                "This user is already registered as a student."
+            )
     def __str__(self):
         return self.user.username
 

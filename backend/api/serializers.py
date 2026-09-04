@@ -16,10 +16,24 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         model = StudentProfile
         fields = "__all__"
 
+    def validate_user(self,user):#cannot register if already teacher
+        if TeacherProfile.objects.filter(user=user):
+            raise serializers.ValidationError(
+                "This user is already registered as a teacher and cannot register as a student."
+            )
+        return user
+
 class TeacherProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherProfile
         fields = "__all__"
+        
+    def validate_user(self,user):
+        if StudentProfile.objects.filter(user=user).exists():
+            raise serializers.ValidationError(
+                "This user is already registered as a student and cannot register as a teacher."
+            )
+        return user
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +50,19 @@ class UserSerializer(serializers.ModelSerializer):
                 "write_only": True
             }
         }
-
+    def validate_email(self,value):
+        if User.objects.filter(email=value).exist():
+            raise serializers.ValidationError(
+                "This email is already registered"
+            )
+        return value
+        
+    def validate_username(self,value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                "This username is already taken."
+            )
+        return value
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
         
@@ -45,12 +71,18 @@ class BeaconSerializer(serializers.ModelSerializer):
         model=Beacon
         fields="__all__"
         
-        
+    def validate_uuid(self,value):
+        if Beacon.objects.filter(uuid=value):
+            raise serializers.ValidationError(
+                "A beacon with this UUID already exists."
+            )     
+        return value
+    
 class AttendanceSessionsSerializer(serializers.ModelSerializer):
     class Meta:
         model=AttendanceSession
         fields="__all__"
-        
+    
 class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
