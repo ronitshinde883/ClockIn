@@ -14,10 +14,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
-        fields = [
-            "user",
-            "division"
-        ]
+        fields = "__all__"
 
     def validate_user(self,user):#cannot register if already teacher
         if TeacherProfile.objects.filter(user=user):
