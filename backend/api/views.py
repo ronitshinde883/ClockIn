@@ -1,7 +1,7 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from django.shortcuts import render,HttpResponse
-from .models import StudentProfile, TeacherProfile, College, Department,Beacon,AttendanceSession,Attendance
-from .serializers import StudentProfileSerializer, TeacherProfileSerializer, CollegeSerializer, DepartmentSerializer,BeaconSerializer,AttendanceSessionsSerializer,AttendanceSerializer
+from .models import StudentProfile, TeacherProfile, College, Department,Beacon,AttendanceSession,Attendance, User
+from .serializers import StudentProfileSerializer, TeacherProfileSerializer, CollegeSerializer, DepartmentSerializer,BeaconSerializer,AttendanceSessionsSerializer,AttendanceSerializer, UserSerializer
 # Create your views here.
 def home(request):
    return HttpResponse("RONIT CHAKKA HAI")
@@ -35,3 +35,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
    serializer_class=AttendanceSerializer
    
    
+class UserCreateViewSet(generics.CreateAPIView):
+   queryset = User.objects.all()
+   serializer_class = UserSerializer
