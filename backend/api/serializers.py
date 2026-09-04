@@ -14,10 +14,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
-        fields = [
-            "user",
-            "division"
-        ]
+        fields = "__all__"
 
 class TeacherProfileSerializer(serializers.ModelSerializer):
     class Meta:
