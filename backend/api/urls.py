@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet
+from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -30,5 +30,6 @@ router.register(
 
 urlpatterns = [
     path("api/", include(router.urls)),
+    path("api/register/", UserCreateViewSet.as_view(), name="register"),
     path("", home)
 ]
