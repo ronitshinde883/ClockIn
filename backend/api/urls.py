@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet
+from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet, CreateAttendanceSessionView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
@@ -37,5 +37,6 @@ urlpatterns = [
     path("api/register/", UserCreateViewSet.as_view(), name="register"),
     path("api/login/", TokenObtainPairView.as_view(), name="login" ),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh" ),
+    path("api/session", CreateAttendanceSessionView.as_view(), name="session"),
     path("", home)
 ]
