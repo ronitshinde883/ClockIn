@@ -115,11 +115,13 @@ class AttendanceSession(models.Model):
     session_token=models.UUIDField(
         default=uuid.uuid4,
         unique=True,
+        editable=False
     )
     started_at=models.DateTimeField(
         auto_now_add=True,
     )
     expires_at=models.DateTimeField()
+    is_active=models.BooleanField(default=True)
 
 
 class Attendance(models.Model):
