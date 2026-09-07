@@ -17,7 +17,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate_user(self,user):#cannot register if already teacher
-        if TeacherProfile.objects.filter(user=user):
+        if TeacherProfile.objects.filter(user=user).exists():
             raise serializers.ValidationError(
                 "This user is already registered as a teacher and cannot register as a student."
             )
@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
             }
         }
     def validate_email(self,value):
-        if User.objects.filter(email=value).exist():
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "This email is already registered"
             )
