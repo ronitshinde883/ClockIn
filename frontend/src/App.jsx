@@ -1,15 +1,21 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+
+import AttendanceQR from "./AttendanceQr.jsx";
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const session = {
+    id: 12,
+    token: "550e8400-e29b-41d4-a716-446655440000",
+    expires_at: "2026-09-07T19:40:00Z"
+  }
 
   return (
-    <h1 className='bg-red-500 p-1'>hello im from ohio</h1>
+    <div>
+      <AttendanceQR session={session}></AttendanceQR>
+    </div>
   )
 }
 
-export default App
+export default App;
