@@ -1,4 +1,4 @@
-# 📚 Attendance Tracking System
+# Attendance Tracking System
 
 A full-stack attendance management system built with **Django REST Framework** and **React**. The application allows teachers to create attendance sessions and students to mark their attendance using a **time-limited QR code**.
 
@@ -6,9 +6,9 @@ The goal is to make classroom attendance faster and reduce common problems such 
 
 ---
 
-## ✨ Features
+## Features
 
-### 👨‍🏫 Teacher
+### Teacher
 
 * Create attendance sessions for a class
 * Generate a dynamic QR code for attendance
@@ -18,7 +18,7 @@ The goal is to make classroom attendance faster and reduce common problems such 
 * View attendance statistics
 * Manage courses/classes
 
-### 👨‍🎓 Student
+### Student
 
 * Login securely
 * View enrolled courses
@@ -27,7 +27,7 @@ The goal is to make classroom attendance faster and reduce common problems such 
 * View personal attendance history
 * View attendance percentage for each course
 
-### 🔐 Attendance Security
+### Attendance Security
 
 * Time-limited QR codes
 * QR codes are periodically refreshed
@@ -38,7 +38,7 @@ The goal is to make classroom attendance faster and reduce common problems such 
 
 ---
 
-## 🧠 How Attendance Works
+## How Attendance Works
 
 The attendance system uses a temporary QR code to reduce proxy attendance.
 
@@ -75,7 +75,7 @@ The QR token is periodically refreshed, so taking a screenshot of an old QR code
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -104,7 +104,7 @@ Django provides the backend framework and ORM, while the React frontend communic
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 attendance-tracker/
@@ -147,7 +147,7 @@ attendance-tracker/
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -243,7 +243,7 @@ http://127.0.0.1:8000/
 
 ---
 
-## 💻 Frontend Setup
+## Frontend Setup
 
 Open another terminal:
 
@@ -277,7 +277,7 @@ http://localhost:5173/
 
 ---
 
-## 🔑 Authentication
+## Authentication
 
 The application uses role-based authentication.
 
@@ -298,7 +298,7 @@ The application uses role-based authentication.
 
 ---
 
-## 📊 Attendance Model
+## Attendance Model
 
 A typical attendance record contains:
 
@@ -326,7 +326,7 @@ AttendanceSession
 
 ---
 
-## 🔌 API Overview
+## API Overview
 
 Example API endpoints:
 
@@ -369,7 +369,7 @@ GET  /api/attendance/course/{id}/
 
 ---
 
-## 🔒 Security Considerations
+## Security Considerations
 
 The application is designed with several protections against attendance abuse:
 
@@ -386,7 +386,7 @@ The QR code is **not treated as proof of identity by itself**. The backend valid
 
 ---
 
-## 🚀 Future Improvements
+## Future Improvements
 
 Planned features include:
 
@@ -407,7 +407,7 @@ Planned features include:
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 Add screenshots of the application here.
 
@@ -433,7 +433,7 @@ Add screenshots of the application here.
 
 ---
 
-## 🎯 Project Goals
+## Project Goals
 
 This project was created to explore:
 
@@ -448,7 +448,7 @@ This project was created to explore:
 
 ---
 
-## 👥 Contributors
+## Contributors
 
 * **Your Name** — Backend / Frontend
 * **Contributor Name** — Frontend
@@ -456,13 +456,13 @@ This project was created to explore:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## ⭐ Acknowledgements
+## Acknowledgements
 
 Built using:
 
