@@ -82,6 +82,11 @@ class AttendanceSessionsSerializer(serializers.ModelSerializer):
     class Meta:
         model=AttendanceSession
         fields="__all__"
+        read_only_fields=[
+            "teacher",
+            "started_at",
+            "session_token"
+        ]
     
 class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
