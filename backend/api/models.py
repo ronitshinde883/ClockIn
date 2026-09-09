@@ -90,7 +90,7 @@ class TeacherProfile(models.Model):
         max_length=20,
         unique=True
     )
-    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='Pending')
+    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='PENDING')
     
     def clean(self):
         if StudentProfile.objects.filter(user=self.user).exists():
