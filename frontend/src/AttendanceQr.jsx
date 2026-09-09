@@ -1,13 +1,13 @@
 import { QRCodeSVG } from "qrcode.react";
 
-function AttendanceQR({ session }) {
+function AttendanceQR({ qrtoken, session }) {
 
     return (
         <div>
             <h2>Scan to mark attendance</h2>
 
             <QRCodeSVG
-                value={session.token}
+                value={qrtoken}
                 size={300}
             />
 
