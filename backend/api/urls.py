@@ -34,12 +34,12 @@ router.register(
 )
 
 urlpatterns = [
-    path("api/", include(router.urls)),
-    path("api/register/", UserCreateViewSet.as_view(), name="register"),
-    path("api/login/", TokenObtainPairView.as_view(), name="login" ),
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh" ),
-    path("api/session/", CreateAttendanceSessionView.as_view(), name="session"),
-    path("api/attendance/mark/<uuid:token>/", MarkAttendanceView.as_view(), name="mark_attendance"),
-    path("api/students/attendance/", StudentAttendanceView.as_view(), name="student_attendance"),
+    path("", include(router.urls)),
+    path("register/", UserCreateViewSet.as_view(), name="register"),
+    path("login/", TokenObtainPairView.as_view(), name="login" ),
+    path("refresh/", TokenRefreshView.as_view(), name="token_refresh" ),
+    path("session/", CreateAttendanceSessionView.as_view(), name="session"),
+    path("attendance/mark/<uuid:token>/", MarkAttendanceView.as_view(), name="mark_attendance"),
+    path("students/attendance/", StudentAttendanceView.as_view(), name="student_attendance"),
     path("", home)
 ]
