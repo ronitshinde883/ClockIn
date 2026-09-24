@@ -133,7 +133,7 @@ class TeacherAttendanceSerializer(serializers.ModelSerializer):
     )
 
     enrollment_no = serializers.CharField(
-        sources="student.enrollment_no",
+        source="student.enrollment_no",
         read_only=True
     )
 
