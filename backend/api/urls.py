@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet, CreateAttendanceSessionView, MarkAttendanceView, StudentAttendanceView
+from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet, CreateAttendanceSessionView, MarkAttendanceView, StudentAttendanceView, TeacherSessionAttendanceView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
@@ -41,5 +41,6 @@ urlpatterns = [
     path("session/", CreateAttendanceSessionView.as_view(), name="session"),
     path("attendance/mark/<uuid:token>/", MarkAttendanceView.as_view(), name="mark_attendance"),
     path("attendance/student", StudentAttendanceView.as_view(), name="student_attendance"),
+    path("session/<int:session_id>/attendance/", TeacherSessionAttendanceView.as_view(), name="teacher_session_attendace"),
     path("", home)
 ]
