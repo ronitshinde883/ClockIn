@@ -239,7 +239,7 @@ class StudentAttendanceView(APIView):
             )
         except StudentProfile.DoesNotExist:
             return Response(
-                {"error": "The student profile for this user does not exists"},
+                {"error": "The student profile for this user does not exist"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
