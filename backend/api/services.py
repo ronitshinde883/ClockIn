@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from .models import Attendance, AttendanceSession
 
 
+'''Validate a QR session token and create the student's attendance.'''
 def mark_attendance(student, token):
     # find session using qr token
     try:

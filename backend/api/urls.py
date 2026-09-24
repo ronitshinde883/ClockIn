@@ -1,11 +1,12 @@
 from django.urls import path, include
-from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet, CreateAttendanceSessionView, MarkAttendanceView
+from .views import StudentViewSet, home, CollegeViewSet, DepartmentViewSet, TeacherViewSet, UserCreateViewSet, CreateAttendanceSessionView, MarkAttendanceView, StudentAttendanceView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
 )
 from rest_framework.routers import DefaultRouter
 
+# Register API resources and expose authentication and attendance endpoints.
 router = DefaultRouter()
 
 router.register(
@@ -39,5 +40,6 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh" ),
     path("api/session/", CreateAttendanceSessionView.as_view(), name="session"),
     path("api/attendance/mark/<uuid:token>/", MarkAttendanceView.as_view(), name="mark_attendance"),
+    path("api/students/attendance/", StudentAttendanceView.as_view(), name="student_attendance"),
     path("", home)
 ]
