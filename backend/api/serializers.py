@@ -124,3 +124,29 @@ class StudentAttendanceSerializer(serializers.ModelSerializer):
             "session_date",
             "marked_at"
         ]
+
+class TeacherAttendanceSerializer(serializers.ModelSerializer):
+
+    student_name = serializers.CharField(
+        source="student.user.username",
+        read_only=True
+    )
+
+    enrollment_no = serializers.CharField(
+        sources="student.enrollment_no",
+        read_only=True
+    )
+
+    marked_time = serializers.DateTimeField(
+        sources="marked_at",
+        read_only=True
+    )
+
+    class Meta:
+        model = Attendance
+        fields = [
+            "id",
+            "username",
+            "enrollment_no",
+            "marked_time"
+        ]

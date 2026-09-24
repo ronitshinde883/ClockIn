@@ -27,16 +27,17 @@ from .serializers import (
     AttendanceSessionsSerializer,
     AttendanceSerializer,
     UserSerializer,
-    StudentAttendanceSerializer
+    StudentAttendanceSerializer,
+    TeacherAttendanceSerializer
 )
 from .permissions import IsAdmin, IsStudent, IsTeacher, IsTeacherOrAdmin
 from .services import mark_attendance
 
 
 # Create your views here.
+'''Return the basic response for the application home endpoint.'''
 def home(request):
-    '''Return the basic response for the application home endpoint.'''
-    return HttpResponse("RONIT CHAKKA HAI")
+    return HttpResponse("WINNER WINNER CHICKEN DINNER...!")
 
 """
 student view set includes endpoints like:
@@ -47,8 +48,8 @@ PUT     /students/{id}  update
 PATCH   /students/{id}  partial_update
 DELETE  /students/{id}  delete/destroy
 """
+'''Provide CRUD endpoints for student profiles.'''
 class StudentViewSet(viewsets.ModelViewSet):
-    '''Provide CRUD endpoints for student profiles.'''
     queryset = StudentProfile.objects.all()
     serializer_class = StudentProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -62,8 +63,8 @@ PUT     /teachers/{id}  update
 PATCH   /teachers/{id}  partial_update
 DELETE  /teachers/{id}  delete/destroy
 """
+'''Provide CRUD endpoints for teacher profiles.'''
 class TeacherViewSet(viewsets.ModelViewSet):
-    '''Provide CRUD endpoints for teacher profiles.'''
     queryset = TeacherProfile.objects.all()
     serializer_class = TeacherProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -77,8 +78,8 @@ PUT     /colleges/{id}  update
 PATCH   /colleges/{id}  partial_update
 DELETE  /colleges/{id}  delete/destroy
 """
+'''Provide CRUD endpoints for colleges.'''
 class CollegeViewSet(viewsets.ModelViewSet):
-    '''Provide CRUD endpoints for colleges.'''
     queryset = College.objects.all()
     serializer_class = CollegeSerializer
 
@@ -91,27 +92,27 @@ PUT     /departments/{id}  update
 PATCH   /departments/{id}  partial_update
 DELETE  /departments/{id}  delete/destroy
 """
+'''Provide CRUD endpoints for departments.'''
 class DepartmentViewSet(viewsets.ModelViewSet):
-    '''Provide CRUD endpoints for departments.'''
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 
 
+'''Provide CRUD endpoints for registered beacons.'''
 class BeaconViewSet(viewsets.ModelViewSet):
-    '''Provide CRUD endpoints for registered beacons.'''
     queryset = Beacon.objects.all()
     serializer_class = BeaconSerializer
 
 
+'''Provide authenticated CRUD endpoints for attendance sessions.'''
 class AttendanceSessionsViewSet(viewsets.ModelViewSet):
-    '''Provide authenticated CRUD endpoints for attendance sessions.'''
     queryset = AttendanceSession.objects.all()
     serializer_class = AttendanceSessionsSerializer
     permission_classes = [IsAuthenticated]
 
 
+'''Provide authenticated CRUD endpoints for attendance records.'''
 class AttendanceViewSet(viewsets.ModelViewSet):
-    '''Provide authenticated CRUD endpoints for attendance records.'''
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [IsAuthenticated]
@@ -120,8 +121,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 this view set includes endpoints like:
 POST  /register/   JSON data-> user creation
 """
+'''Provide the user registration endpoint.'''
 class UserCreateViewSet(generics.CreateAPIView):
-    '''Provide the user registration endpoint.'''
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -133,8 +134,8 @@ role based access so that only users with the role teacher can create the sessio
 department validation if it exists or not
 also sessions can be only created if the teacher belongs to that department
 """
+'''Create a time-limited attendance session for a teacher's department.'''
 class CreateAttendanceSessionView(APIView):
-    '''Create a time-limited attendance session for a teacher's department.'''
     permission_classes = [IsTeacher]
 
     def post(self, request):
@@ -190,8 +191,8 @@ includes validation like if the user is logged in or not
 and if the session is active or expired
 all the validation logic is included in the service mark_attendance
 """
+'''Mark attendance for an authenticated student using a QR token.'''
 class MarkAttendanceView(APIView):
-    '''Mark attendance for an authenticated student using a QR token.'''
     permission_classes=[IsStudent]
 
     def post(self, request, token):
@@ -226,11 +227,12 @@ view to check the history of the attendances marked by students
 checks if the user is a student
 queries the database for attendance records and are arranged according to the marked_at datetime format
 """
+'''Return the authenticated student's attendance history.'''
 class StudentAttendanceView(APIView):
-    '''Return the authenticated student's attendance history.'''
     permission_classes = [IsStudent]
 
     def get(self, request):
+
         try:
             student = StudentProfile.objects.get(
                 user=request.user
@@ -251,6 +253,49 @@ class StudentAttendanceView(APIView):
         )
 
         return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+'''Returns the record of students who have marked their attendance to teacher\
+    IMPROVEMENT: can be improved using websockets
+    '''
+class TeacherSessionAttendanceView(APIView):
+    permission_classes = [IsTeacher]
+
+    def get(self, request, session_id):
+
+        try:
+            teacher = TeacherProfile.objects.get(
+                user=request.user
+            )
+        except TeacherProfile.DoesNotExist:
+            return Response(
+                {"error": "The teacher profile for this user does not exists"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            session = AttendanceSession.objects.get(
+                id = session_id,
+                teacher=teacher
+            )
+        except AttendanceSession.DoesNotExist:
+            return Response(
+                {"error": "Attendance session not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        attendance = Attendance.objects.filter(
+            session = session
+        ).select_related("student__user").order_by("marked_at")
+
+        serializer = TeacherAttendanceSerializer(
+            attendance,
+            many=True
+        )
+
+        return Response (
             serializer.data,
             status=status.HTTP_200_OK
         )
