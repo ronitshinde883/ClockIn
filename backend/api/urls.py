@@ -41,6 +41,6 @@ urlpatterns = [
     path("session/", CreateAttendanceSessionView.as_view(), name="session"),
     path("attendance/mark/<uuid:token>/", MarkAttendanceView.as_view(), name="mark_attendance"),
     path("attendance/student", StudentAttendanceView.as_view(), name="student_attendance"),
-    path("session/<int:session_id>/attendance/", TeacherSessionAttendanceView.as_view(), name="teacher_session_attendace"),
+    path("session/<int:session_id>/attendance/", TeacherSessionAttendanceView.as_view(), name="teacher_session_attendance"),
     path("", home)
 ]
