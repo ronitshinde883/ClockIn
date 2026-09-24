@@ -138,7 +138,7 @@ class TeacherAttendanceSerializer(serializers.ModelSerializer):
     )
 
     marked_time = serializers.DateTimeField(
-        sources="marked_at",
+        source="marked_at",
         read_only=True
     )
 
