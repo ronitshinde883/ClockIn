@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 import uuid ##universally unique indentifier
 
+'''Store the institution details used by departments and users.'''
 class College(models.Model):
     name=models.CharField(max_length=200)
     code=models.CharField(max_length=50,unique=True)
@@ -13,6 +14,7 @@ class College(models.Model):
     def __str__(self):
         return self.name
     
+'''Represent an academic department belonging to a college.'''
 class Department(models.Model):
     college=models.ForeignKey(
         College,on_delete=models.CASCADE
@@ -22,6 +24,7 @@ class Department(models.Model):
         return self.name
     
     
+'''Extend Django users with application-specific role information.'''
 class User(AbstractUser):
     ROLE_CHOICES=(
         ("ADMIN","Admin"),
@@ -34,6 +37,7 @@ class User(AbstractUser):
         return self.username
     
     
+'''Store enrollment and academic details for a student user.'''
 class StudentProfile(models.Model):
     user=models.OneToOneField(
         User,
@@ -66,6 +70,7 @@ class StudentProfile(models.Model):
     def __str__(self):
         return self.user.username
     
+'''Store employment and approval details for a teacher user.'''
 class TeacherProfile(models.Model):
     STATUS_CHOICES = (
         ("PENDING", "Pending"),
@@ -100,6 +105,7 @@ class TeacherProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+'''Represent a teacher's time-limited attendance session and QR token.'''
 class AttendanceSession(models.Model):
     teacher=models.ForeignKey(
         TeacherProfile,
@@ -124,6 +130,7 @@ class AttendanceSession(models.Model):
     is_active=models.BooleanField(default=True)
 
 
+'''Record one student's attendance in a specific session.'''
 class Attendance(models.Model):
     
     session=models.ForeignKey(
@@ -148,6 +155,7 @@ class Attendance(models.Model):
     def __str__(self):
         return self.student.user.username
     
+'''Store a named physical beacon associated with a college.'''
 class Beacon(models.Model):
     college=models.ForeignKey(
         College,

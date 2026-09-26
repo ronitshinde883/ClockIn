@@ -1,16 +1,19 @@
 from rest_framework import serializers
 from .models import College, Department, StudentProfile, TeacherProfile, User,Beacon,AttendanceSession,Attendance
 
+'''Serialize college records for API input and output.'''
 class CollegeSerializer(serializers.ModelSerializer):
     class Meta:
         model = College
         fields = "__all__"
 
+'''Serialize department records for API input and output.'''
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = "__all__"
 
+'''Serialize student profiles and prevent teacher profile conflicts.'''
 class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
@@ -23,6 +26,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             )
         return user
 
+'''Serialize teacher profiles and prevent student profile conflicts.'''
 class TeacherProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherProfile
@@ -35,6 +39,7 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
             )
         return user
 
+'''Validate user registration data and create users securely.'''
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -66,6 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
         
+'''Serialize beacons while enforcing unique beacon UUIDs.'''
 class BeaconSerializer(serializers.ModelSerializer):
     class Meta:
         model=Beacon
@@ -77,7 +83,9 @@ class BeaconSerializer(serializers.ModelSerializer):
                 "A beacon with this UUID already exists."
             )     
         return value
-    
+
+# attendance session serializer
+'''Serialize attendance sessions while protecting generated fields.'''
 class AttendanceSessionsSerializer(serializers.ModelSerializer):
     class Meta:
         model=AttendanceSession
@@ -87,8 +95,58 @@ class AttendanceSessionsSerializer(serializers.ModelSerializer):
             "started_at",
             "session_token"
         ]
-    
+
+# attendance serializer
+'''Serialize attendance records for API requests and responses.'''
 class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
         fields = "__all__"
+
+# serializer to view the history of the student attendance marking
+'''Present a student's attendance history in a readable format.'''
+class StudentAttendanceSerializer(serializers.ModelSerializer):
+    subject = serializers.CharField(
+        source="session.subject_name",
+        read_only= True
+    )
+
+    session_date = serializers.DateTimeField(
+        source="session.started_at",
+        read_only=True
+    )
+
+    class Meta:
+        model = Attendance
+        fields = [
+            "id",
+            "subject",
+            "session_date",
+            "marked_at"
+        ]
+
+class TeacherAttendanceSerializer(serializers.ModelSerializer):
+
+    student_name = serializers.CharField(
+        source="student.user.username",
+        read_only=True
+    )
+
+    enrollment_no = serializers.CharField(
+        source="student.enrollment_no",
+        read_only=True
+    )
+
+    marked_time = serializers.DateTimeField(
+        source="marked_at",
+        read_only=True
+    )
+
+    class Meta:
+        model = Attendance
+        fields = [
+            "id",
+            "username",
+            "enrollment_no",
+            "marked_time"
+        ]
