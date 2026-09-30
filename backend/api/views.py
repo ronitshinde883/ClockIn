@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.shortcuts import render, HttpResponse
 from django.utils import timezone
+import uuid
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -189,6 +190,7 @@ class CreateAttendanceSessionView(APIView):
             teacher_latitude=teacher_latitude,
             teacher_longitude=teacher_longitude,
             expires_at=timezone.now() + timedelta(minutes=30),
+            qr_token_expires_at=timezone.now() + timedelta(seconds=30),
             is_active=True,
         )
 
@@ -322,3 +324,56 @@ class TeacherSessionAttendanceView(APIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+"""
+refresh QR token every x seconds for anti proxy mechanism
+"""
+class RefreshQRTokenView(APIView):
+    permission_classes = [IsTeacher]
+
+    def post(self, request, session_id):
+        teacher = request.user.teacherprofile
+
+        try:
+            session = AttendanceSession.objects.get(
+                id=session_id,
+                teacher=teacher
+            )
+        except AttendanceSession.DoesNotExist:
+            return Response(
+                {"error": "Attendance session not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not session.is_active:
+            return Response(
+                {"error": "Attendance session is not active"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if timezone.now() >= session.expires_at:
+            session.is_active = False
+            session.save(update_fields=["is_active"])
+
+            return Response(
+                {"error": "Attendance session has expired"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        session.qr_token = uuid.uuid4()
+
+        session.qr_token_expires_at=(
+            timezone.now() + timedelta(seconds=30)
+        )
+
+        session.save(
+            update_fields=[
+                "qr_token",
+                "qr_token_expires_at"
+            ]
+        )
+
+        return Response({
+            "qr_token": str(session.qr_token),
+            "expires_at": session.qr_token_expires_at
+            })
