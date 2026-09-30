@@ -9,7 +9,7 @@ from .models import Attendance, AttendanceSession
 def mark_attendance(student, token, student_latitude, student_longitude):
     # find session using qr token
     try:
-        session = AttendanceSession.objects.get(session_token=token)
+        session = AttendanceSession.objects.get(qr_token=token)
     except:
         raise ValidationError("Invalid QR code")
 
@@ -17,20 +17,23 @@ def mark_attendance(student, token, student_latitude, student_longitude):
     if not session.is_active:
         raise ValidationError("Attendance session is not active")
 
-    # if expired or not
-    if timezone.now() > session.expires_at:
-        raise ValidationError("QR already expired")
+    # if qr expired or not
+    if timezone.now() > session.qr_token_expires_at:
+        raise ValidationError("QR code already expired")
 
+    # student belongs to the same department as of the session
     if student.department != session.department:
         raise ValidationError("You are not part of this department")
 
+    # calculate distance of student wrt to teacher
     distance = calculate_distance(
         session.teacher_latitude,
         session.teacher_longitude,
         student_latitude,
         student_longitude
-    )
+    )   
 
+    # student is within 50m radius
     if distance > 50:
         raise ValidationError("You are too far from the teacher")
 

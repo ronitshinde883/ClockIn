@@ -197,6 +197,47 @@ class CreateAttendanceSessionView(APIView):
         serializer = AttendanceSessionsSerializer(session)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+"""
+terminate exisiting attendance session which ends the existing session
+can be only terminated by the Teacher who created it and ADMIN
+"""
+class TerminateAttendanceSessionView(APIView):
+    permission_classes=[IsTeacherOrAdmin]
+
+    def post(self, request, session_id):
+        if not session_id:
+            return Response(
+                {"error": "Session with this id not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        teacher = request.user.teacherprofile
+
+        try:
+            session = AttendanceSession.objects.get(
+                id=session_id,
+                teacher=teacher
+            )
+        except AttendanceSession.DoesNotExist:
+            return Response(
+                {"error": "Session not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not session.is_active:
+            return Response(
+                {"error": "Session is already terminated."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        session.is_active = False
+        session.save(update_fields=["is_active"])
+
+        return Response({"message": "Session successfully terminated"}, status=status.HTTP_200_OK)
+
+
 """
 marks attendance of the student
 includes validation like if the user is logged in or not
