@@ -123,11 +123,14 @@ class AttendanceSession(models.Model):
         unique=True,
         editable=False
     )
+    teacher_latitude=models.FloatField()    # location details of teacher
+    teacher_longitude=models.FloatField()
     started_at=models.DateTimeField(
         auto_now_add=True,
     )
     expires_at=models.DateTimeField()
     is_active=models.BooleanField(default=True)
+
 
 
 '''Record one student's attendance in a specific session.'''

@@ -133,18 +133,26 @@ teacher login validation,
 role based access so that only users with the role teacher can create the session
 department validation if it exists or not
 also sessions can be only created if the teacher belongs to that department
+teacher will be asked for their location
 """
-'''Create a time-limited attendance session for a teacher's department.'''
+'''Create a time-limited attendance session for a teacher's department, with location.'''
 class CreateAttendanceSessionView(APIView):
     permission_classes = [IsTeacher]
 
     def post(self, request):
         subject_name = request.data.get("subject")
         department_id = request.data.get("department")
+        teacher_latitude = request.data.get("teacher_latitude")
+        teacher_longitude = request.data.get("teacher_longitude")
 
-        if not subject_name or not department_id:
+
+        if (not subject_name 
+            or not department_id
+            or teacher_latitude is None
+            or teacher_longitude is None
+        ):
             return Response(
-                {"error": "Subject name and department id is required"},
+                {"error": "Subject, department and teacher location are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
@@ -178,6 +186,8 @@ class CreateAttendanceSessionView(APIView):
             teacher=teacher,
             department=department,
             subject_name=subject_name,
+            teacher_latitude=teacher_latitude,
+            teacher_longitude=teacher_longitude,
             expires_at=timezone.now() + timedelta(minutes=30),
             is_active=True,
         )
@@ -209,9 +219,22 @@ class MarkAttendanceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        student = request.user.studentprofile
+
+        student_latitude = request.data.get("student_latitude")
+        student_longitude = request.data.get("student_longitude")
+
+        if student_latitude is None or student_longitude is None:
+            return Response(
+                {"error": "Student location is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         attendance = mark_attendance(
-            student=request.user.studentprofile,
-            token=token
+            student=student,
+            token=token,
+            student_latitude=student_latitude,
+            student_longitude=student_longitude
         )
 
         return Response(
