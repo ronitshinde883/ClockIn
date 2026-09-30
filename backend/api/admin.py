@@ -1,5 +1,5 @@
 from django.contrib import admin
-from api.models import User,StudentProfile,TeacherProfile,Department,College,AttendanceSession,Beacon,Attendance
+from api.models import User,StudentProfile,TeacherProfile,Department,College,AttendanceSession,Attendance
 
 # Register all API models so they can be managed through Django admin.
 # Register your models here.
@@ -9,6 +9,5 @@ admin.site.register(TeacherProfile)
 admin.site.register(Department)
 admin.site.register(College)
 admin.site.register(AttendanceSession)
-admin.site.register(Beacon)
 admin.site.register(Attendance)
 

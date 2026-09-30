@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import College, Department, StudentProfile, TeacherProfile, User,Beacon,AttendanceSession,Attendance
+from .models import College, Department, StudentProfile, TeacherProfile, User, AttendanceSession,Attendance
 
 '''Serialize college records for API input and output.'''
 class CollegeSerializer(serializers.ModelSerializer):
@@ -70,19 +70,6 @@ class UserSerializer(serializers.ModelSerializer):
         return value
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
-        
-'''Serialize beacons while enforcing unique beacon UUIDs.'''
-class BeaconSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Beacon
-        fields="__all__"
-        
-    def validate_uuid(self,value):
-        if Beacon.objects.filter(uuid=value):
-            raise serializers.ValidationError(
-                "A beacon with this UUID already exists."
-            )     
-        return value
 
 # attendance session serializer
 '''Serialize attendance sessions while protecting generated fields.'''
@@ -150,3 +137,13 @@ class TeacherAttendanceSerializer(serializers.ModelSerializer):
             "enrollment_no",
             "marked_time"
         ]
+
+class RegisterSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=150
+    )
+
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6
+    )

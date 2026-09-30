@@ -14,7 +14,6 @@ from .models import (
     TeacherProfile,
     College,
     Department,
-    Beacon,
     AttendanceSession,
     Attendance,
     User,
@@ -24,7 +23,6 @@ from .serializers import (
     TeacherProfileSerializer,
     CollegeSerializer,
     DepartmentSerializer,
-    BeaconSerializer,
     AttendanceSessionsSerializer,
     AttendanceSerializer,
     UserSerializer,
@@ -97,12 +95,6 @@ DELETE  /departments/{id}  delete/destroy
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-
-
-'''Provide CRUD endpoints for registered beacons.'''
-class BeaconViewSet(viewsets.ModelViewSet):
-    queryset = Beacon.objects.all()
-    serializer_class = BeaconSerializer
 
 
 '''Provide authenticated CRUD endpoints for attendance sessions.'''
