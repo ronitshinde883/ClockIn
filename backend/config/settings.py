@@ -137,6 +137,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+
+    "EXCEPTION_HANDLER": "api.exceptions.custom_exception_handler",
 }
 
 CORS_ALLOW_ALL_ORIGINS = True   # very dangerous
