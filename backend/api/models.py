@@ -123,6 +123,12 @@ class AttendanceSession(models.Model):
         unique=True,
         editable=False
     )
+    qr_token=models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False
+    )
+    qr_token_expires_at=models.DateTimeField(null=True, blank=True)
     teacher_latitude=models.FloatField()    # location details of teacher
     teacher_longitude=models.FloatField()
     started_at=models.DateTimeField(
