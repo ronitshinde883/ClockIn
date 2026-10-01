@@ -73,7 +73,7 @@ def register_student(data):
         division=data["division"]
     )
 
-    return user, student
+    return student
 
 @transaction.atomic
 def register_teacher(data):
@@ -95,4 +95,4 @@ def register_teacher(data):
         status="PENDING"
     )
 
-    return user, teacher
+    return teacher
