@@ -1,8 +1,9 @@
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from django.db import transaction
 
 from .utils import calculate_distance
-from .models import Attendance, AttendanceSession
+from .models import Attendance, AttendanceSession, User, StudentProfile, TeacherProfile
 
 
 '''Validate a QR session token and create the student's attendance.'''
@@ -49,3 +50,49 @@ def mark_attendance(student, token, student_latitude, student_longitude):
     )
 
     return attendance
+
+
+# register service for user register as a teacher and as well as a student
+@transaction.atomic
+def register_student(data):
+
+    user = User.objects.create_user(
+        username=data["username"],
+        password=data["password"],
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        email=data["email"],
+        role="STUDENT"
+    )
+
+    student = StudentProfile.objects.create(
+        user=user,
+        college=data["college"],
+        department=data["department"],
+        enrollment_no=data["enrollment_no"],
+        division=data["division"]
+    )
+
+    return user, student
+
+@transaction.atomic
+def register_teacher(data):
+
+    user = User.objects.create_user(
+        username=data["username"],
+        password=data["password"],
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        email=data["email"],
+        role="TEACHER"
+    )
+
+    teacher = TeacherProfile.objects.create(
+        user=user,
+        college=data["college"],
+        department=data["department"],
+        employee_id=data["employee_id"],
+        status="PENDING"
+    )
+
+    return user, teacher
