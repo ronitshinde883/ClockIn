@@ -14,7 +14,6 @@ from .models import (
     TeacherProfile,
     College,
     Department,
-    Beacon,
     AttendanceSession,
     Attendance,
     User,
@@ -24,21 +23,26 @@ from .serializers import (
     TeacherProfileSerializer,
     CollegeSerializer,
     DepartmentSerializer,
-    BeaconSerializer,
     AttendanceSessionsSerializer,
     AttendanceSerializer,
     UserSerializer,
     StudentAttendanceSerializer,
-    TeacherAttendanceSerializer
+    TeacherAttendanceSerializer,
+    StudentRegisterSerializer,
+    TeacherRegisterSerializer,
+    StudentResponseSerializer,
+    TeacherResponseSerializer
 )
 from .permissions import IsAdmin, IsStudent, IsTeacher, IsTeacherOrAdmin
-from .services import mark_attendance
-
+from .services import mark_attendance, register_student, register_teacher
 
 # Create your views here.
-'''Return the basic response for the application home endpoint.'''
+"""Return the basic response for the application home endpoint."""
+
+
 def home(request):
     return HttpResponse("WINNER WINNER CHICKEN DINNER...!")
+
 
 """
 student view set includes endpoints like:
@@ -49,11 +53,14 @@ PUT     /students/{id}  update
 PATCH   /students/{id}  partial_update
 DELETE  /students/{id}  delete/destroy
 """
-'''Provide CRUD endpoints for student profiles.'''
+"""Provide CRUD endpoints for student profiles."""
+
+
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = StudentProfile.objects.all()
     serializer_class = StudentProfileSerializer
     permission_classes = [IsAuthenticated]
+
 
 """
 teacher view set includes endpoints like:
@@ -64,11 +71,14 @@ PUT     /teachers/{id}  update
 PATCH   /teachers/{id}  partial_update
 DELETE  /teachers/{id}  delete/destroy
 """
-'''Provide CRUD endpoints for teacher profiles.'''
+"""Provide CRUD endpoints for teacher profiles."""
+
+
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = TeacherProfile.objects.all()
     serializer_class = TeacherProfileSerializer
     permission_classes = [IsAuthenticated]
+
 
 """
 college view set includes endpoints like:
@@ -79,10 +89,13 @@ PUT     /colleges/{id}  update
 PATCH   /colleges/{id}  partial_update
 DELETE  /colleges/{id}  delete/destroy
 """
-'''Provide CRUD endpoints for colleges.'''
+"""Provide CRUD endpoints for colleges."""
+
+
 class CollegeViewSet(viewsets.ModelViewSet):
     queryset = College.objects.all()
     serializer_class = CollegeSerializer
+
 
 """
 department view set includes endpoints like:
@@ -93,39 +106,86 @@ PUT     /departments/{id}  update
 PATCH   /departments/{id}  partial_update
 DELETE  /departments/{id}  delete/destroy
 """
-'''Provide CRUD endpoints for departments.'''
+"""Provide CRUD endpoints for departments."""
+
+
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 
 
-'''Provide CRUD endpoints for registered beacons.'''
-class BeaconViewSet(viewsets.ModelViewSet):
-    queryset = Beacon.objects.all()
-    serializer_class = BeaconSerializer
+# student registration view an atomic operation of both user and student creation
+class StudentRegisterView(APIView):
+
+    def post(self, request):
+        serializer = StudentRegisterSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        student = register_student(serializer.validated_data)
+
+        response_serializer = StudentResponseSerializer(student)
+
+        return Response(
+            {
+                "message": "Student registered successfully.",
+                "data": response_serializer.data
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
-'''Provide authenticated CRUD endpoints for attendance sessions.'''
+# teacher register view - an atomic operation of both user and teacher creation
+class TeacherRegisterView(APIView):
+
+    def post(self, request):
+        serializer = TeacherRegisterSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        user, teacher = register_teacher(serializer.validated_data)
+
+        return Response(
+            {
+                "message": "Student registered successfully.",
+                "username": user.username,
+                "enrollment_no": teacher.employee_id,
+                "status": teacher.status,
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+"""Provide authenticated CRUD endpoints for attendance sessions."""
+
+
 class AttendanceSessionsViewSet(viewsets.ModelViewSet):
     queryset = AttendanceSession.objects.all()
     serializer_class = AttendanceSessionsSerializer
     permission_classes = [IsAuthenticated]
 
 
-'''Provide authenticated CRUD endpoints for attendance records.'''
+"""Provide authenticated CRUD endpoints for attendance records."""
+
+
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [IsAuthenticated]
 
+
 """
 this view set includes endpoints like:
 POST  /register/   JSON data-> user creation
 """
-'''Provide the user registration endpoint.'''
+"""Provide the user registration endpoint."""
+
+
 class UserCreateViewSet(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 """
 create attendance session view used to create a session by teachers
@@ -136,7 +196,9 @@ department validation if it exists or not
 also sessions can be only created if the teacher belongs to that department
 teacher will be asked for their location
 """
-'''Create a time-limited attendance session for a teacher's department, with location.'''
+"""Create a time-limited attendance session for a teacher's department, with location."""
+
+
 class CreateAttendanceSessionView(APIView):
     permission_classes = [IsTeacher]
 
@@ -146,8 +208,8 @@ class CreateAttendanceSessionView(APIView):
         teacher_latitude = request.data.get("teacher_latitude")
         teacher_longitude = request.data.get("teacher_longitude")
 
-
-        if (not subject_name 
+        if (
+            not subject_name
             or not department_id
             or teacher_latitude is None
             or teacher_longitude is None
@@ -156,14 +218,13 @@ class CreateAttendanceSessionView(APIView):
                 {"error": "Subject, department and teacher location are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # check if teacher profile already exists
         try:
             teacher = TeacherProfile.objects.get(user=request.user)
         except TeacherProfile.DoesNotExist:
             return Response(
-                {"error": "Teacher profile not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Teacher profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # check if department actually exists
@@ -171,15 +232,14 @@ class CreateAttendanceSessionView(APIView):
             department = Department.objects.get(id=department_id)
         except Department.DoesNotExist:
             return Response(
-                {"error" : "Department not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Department not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # check if teacher have access to this department
         if teacher.department != department:
             return Response(
                 {"error": "You cannot create a session for this department"},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # create session
@@ -203,39 +263,39 @@ class CreateAttendanceSessionView(APIView):
 terminate exisiting attendance session which ends the existing session
 can be only terminated by the Teacher who created it and ADMIN
 """
+
+
 class TerminateAttendanceSessionView(APIView):
-    permission_classes=[IsTeacherOrAdmin]
+    permission_classes = [IsTeacherOrAdmin]
 
     def post(self, request, session_id):
         if not session_id:
             return Response(
                 {"error": "Session with this id not found"},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         teacher = request.user.teacherprofile
 
         try:
-            session = AttendanceSession.objects.get(
-                id=session_id,
-                teacher=teacher
-            )
+            session = AttendanceSession.objects.get(id=session_id, teacher=teacher)
         except AttendanceSession.DoesNotExist:
             return Response(
-                {"error": "Session not found."},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Session not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
         if not session.is_active:
             return Response(
                 {"error": "Session is already terminated."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         session.is_active = False
         session.save(update_fields=["is_active"])
 
-        return Response({"message": "Session successfully terminated"}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Session successfully terminated"}, status=status.HTTP_200_OK
+        )
 
 
 """
@@ -244,9 +304,11 @@ includes validation like if the user is logged in or not
 and if the session is active or expired
 all the validation logic is included in the service mark_attendance
 """
-'''Mark attendance for an authenticated student using a QR token.'''
+"""Mark attendance for an authenticated student using a QR token."""
+
+
 class MarkAttendanceView(APIView):
-    permission_classes=[IsStudent]
+    permission_classes = [IsStudent]
 
     def post(self, request, token):
 
@@ -258,8 +320,7 @@ class MarkAttendanceView(APIView):
         print("========================================")
         if not token:
             return Response(
-                {"error": "QR token is required"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "QR token is required"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         student = request.user.studentprofile
@@ -270,105 +331,99 @@ class MarkAttendanceView(APIView):
         if student_latitude is None or student_longitude is None:
             return Response(
                 {"error": "Student location is required"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         attendance = mark_attendance(
             student=student,
             token=token,
             student_latitude=student_latitude,
-            student_longitude=student_longitude
+            student_longitude=student_longitude,
         )
 
         return Response(
             {
                 "message": "Attendance marked successfully",
-                "attendance_id": attendance.id
+                "attendance_id": attendance.id,
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
+
 
 """
 view to check the history of the attendances marked by students
 checks if the user is a student
 queries the database for attendance records and are arranged according to the marked_at datetime format
 """
-'''Return the authenticated student's attendance history.'''
+"""Return the authenticated student's attendance history."""
+
+
 class StudentAttendanceView(APIView):
     permission_classes = [IsStudent]
 
     def get(self, request):
 
         try:
-            student = StudentProfile.objects.get(
-                user=request.user
-            )
+            student = StudentProfile.objects.get(user=request.user)
         except StudentProfile.DoesNotExist:
             return Response(
                 {"error": "The student profile for this user does not exist"},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        attendance = Attendance.objects.filter(
-            student = student
-        ).select_related("session").order_by("-marked_at")
-
-        serializer = StudentAttendanceSerializer(
-            attendance, 
-            many=True
+        attendance = (
+            Attendance.objects.filter(student=student)
+            .select_related("session")
+            .order_by("-marked_at")
         )
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        serializer = StudentAttendanceSerializer(attendance, many=True)
 
-'''Returns the record of students who have marked their attendance to teacher\
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+"""Returns the record of students who have marked their attendance to teacher\
     IMPROVEMENT: can be improved using websockets
-    '''
+    """
+
+
 class TeacherSessionAttendanceView(APIView):
     permission_classes = [IsTeacher]
 
     def get(self, request, session_id):
 
         try:
-            teacher = TeacherProfile.objects.get(
-                user=request.user
-            )
+            teacher = TeacherProfile.objects.get(user=request.user)
         except TeacherProfile.DoesNotExist:
             return Response(
                 {"error": "The teacher profile for this user does not exists"},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         try:
-            session = AttendanceSession.objects.get(
-                id = session_id,
-                teacher=teacher
-            )
+            session = AttendanceSession.objects.get(id=session_id, teacher=teacher)
         except AttendanceSession.DoesNotExist:
             return Response(
                 {"error": "Attendance session not found"},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        attendance = Attendance.objects.filter(
-            session = session
-        ).select_related("student__user").order_by("marked_at")
-
-        serializer = TeacherAttendanceSerializer(
-            attendance,
-            many=True
+        attendance = (
+            Attendance.objects.filter(session=session)
+            .select_related("student__user")
+            .order_by("marked_at")
         )
 
-        return Response (
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        serializer = TeacherAttendanceSerializer(attendance, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 """
 refresh QR token every x seconds for anti proxy mechanism
 """
+
+
 class RefreshQRTokenView(APIView):
     permission_classes = [IsTeacher]
 
@@ -376,20 +431,17 @@ class RefreshQRTokenView(APIView):
         teacher = request.user.teacherprofile
 
         try:
-            session = AttendanceSession.objects.get(
-                id=session_id,
-                teacher=teacher
-            )
+            session = AttendanceSession.objects.get(id=session_id, teacher=teacher)
         except AttendanceSession.DoesNotExist:
             return Response(
                 {"error": "Attendance session not found"},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         if not session.is_active:
             return Response(
                 {"error": "Attendance session is not active"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if timezone.now() >= session.expires_at:
@@ -398,23 +450,18 @@ class RefreshQRTokenView(APIView):
 
             return Response(
                 {"error": "Attendance session has expired"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         session.qr_token = uuid.uuid4()
 
-        session.qr_token_expires_at=(
-            timezone.now() + timedelta(seconds=30)
-        )
+        session.qr_token_expires_at = timezone.now() + timedelta(seconds=30)
 
-        session.save(
-            update_fields=[
-                "qr_token",
-                "qr_token_expires_at"
-            ]
-        )
+        session.save(update_fields=["qr_token", "qr_token_expires_at"])
 
-        return Response({
-            "qr_token": str(session.qr_token),
-            "expires_at": session.qr_token_expires_at
-            })
+        return Response(
+            {
+                "qr_token": str(session.qr_token),
+                "expires_at": session.qr_token_expires_at,
+            }
+        )

@@ -11,7 +11,9 @@ from .views import (
     StudentAttendanceView,
     TeacherSessionAttendanceView,
     RefreshQRTokenView,
-    TerminateAttendanceSessionView
+    TerminateAttendanceSessionView,
+    StudentRegisterView,
+    TeacherRegisterView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.routers import DefaultRouter
@@ -55,6 +57,16 @@ urlpatterns = [
         "session/<int:session_id>/terminate/",
         TerminateAttendanceSessionView.as_view(),
         name="terminate-session"
+    ),
+    path(
+        "register/student/",
+        StudentRegisterView.as_view(),
+        name="student-registration"  
+    ),
+    path(
+        "register/teacher/",
+        TeacherRegisterView.as_view(),
+        name="teacher-registration"
     ),
     path("", home),
 ]
